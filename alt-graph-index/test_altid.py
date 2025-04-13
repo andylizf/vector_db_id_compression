@@ -33,9 +33,25 @@ class TestCompressedNSG(unittest.TestCase):
         index.add(ds.get_database())
         Dref, Iref = index.search(ds.get_queries(), 10)
 
-        gr = index.nsg.get_final_graph()
-
-        compactbit_graph = graph_class(gr)
+        # Get the original graph
+        original_graph = index.nsg.get_final_graph()
+        
+        # Extract neighbors data as numpy array
+        neighbors = np.zeros((original_graph.N, original_graph.K), dtype='int32')
+        faiss.memcpy(
+            faiss.swig_ptr(neighbors),
+            original_graph.data,
+            neighbors.nbytes
+        )
+        
+        # Create a new graph from scratch
+        new_graph = altid.FinalNSGGraph(faiss.swig_ptr(neighbors), original_graph.N, original_graph.K)
+        new_graph.own_fields = False  # Important: don't try to free the memory
+        
+        # Create compressed graph
+        compactbit_graph = graph_class(new_graph)
+        
+        # Replace in the index
         index.nsg.replace_final_graph(compactbit_graph)
 
         D, I = index.search(ds.get_queries(), 10)

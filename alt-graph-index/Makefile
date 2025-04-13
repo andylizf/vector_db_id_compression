@@ -15,7 +15,7 @@ altid_wrap.cxx altid.py: altid.swig altid_impl.h
 
 
 _altid.so: altid_wrap.cxx altid_impl.cpp ../custom_invlist_cpp/codec.cpp
-	g++ -fPIC -O3 -std=c++17 \
+	${CXX} -fPIC -O3 -std=c++17 \
 	$^ \
 	-shared \
 	-o $@ \
